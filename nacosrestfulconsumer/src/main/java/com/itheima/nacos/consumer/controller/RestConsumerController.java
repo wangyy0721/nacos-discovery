@@ -1,5 +1,7 @@
 package com.itheima.nacos.consumer.controller;
 
+import com.itheima.microservice.service1.api.Service1Api;
+import com.itheima.microservice.service2.api.Service2Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
@@ -38,7 +40,7 @@ public class RestConsumerController {
     @Autowired
     LoadBalancerClient loadBalancerClient;
 
-    @GetMapping(value = "/service1")
+    @GetMapping(value = "/service1")//http://127.0.0.1:56020/service1
     public String service1(){
         //远程调用
         RestTemplate restTemplate = new RestTemplate();
@@ -49,6 +51,27 @@ public class RestConsumerController {
         URI uri = serviceInstance.getUri();
         String result = restTemplate.getForObject(uri + "/service", String.class);
         return "consumer1 invode|"+result;
+    }
+
+
+
+    //---------DUBBO  远程服务调用-------------------------------------------------------------------
+    @org.apache.dubbo.config.annotation.Reference
+    Service2Api service2Api;
+
+    @org.apache.dubbo.config.annotation.Reference
+    Service1Api service1Api;
+    @GetMapping(value = "/service2")//http://127.0.0.1:56020/service2
+    public String service2(){
+        //远程调用service2
+        String providerResult = service2Api.dubboService2();
+        return "consumer dubbo invoke |"+providerResult;
+    }
+    @GetMapping(value = "/service3")//http://127.0.0.1:56020/service3
+    public String service3(){
+        //远程调用service1
+        String providerResult = service1Api.dubboService1();
+        return "consumer dubbo invoke |"+providerResult;
     }
 
 }
